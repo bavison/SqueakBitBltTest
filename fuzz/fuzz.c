@@ -33,8 +33,6 @@
 
 #include "BitBltDispatch.h"
 
-#define sqInt int
-
 #define MIN(a,b) ((a)<(b)?(a):(b))
 #define MAX(a,b) ((a)>(b)?(a):(b))
 
@@ -151,7 +149,7 @@ static          int shiftTable85[4] = {       -9,       -6,       -3,        0 }
 /* For each destination depth, a table of random words */
 uint32_t lookupTable[6][32768];
 
-int halftone[12] = {
+sqInt halftone[12] = {
 		0x55555555,
 		0x33333333,
 		0x0F0F0F0F,
@@ -349,6 +347,11 @@ static void dumpBuffer(uint32_t *buf, size_t wordsPerRow, size_t rows, uint32_t 
 	}
 }
 
+void warning(const char *message)
+{
+    fprintf(stderr, "%s\n", message);
+}
+
 int main(int argc, char *argv[])
 {
 	size_t min_iter = 0;
@@ -423,8 +426,8 @@ int main(int argc, char *argv[])
 		ungammaTable[i] = rand();
 	}
 
-	uint32_t src[MAXWIDTH * MAXHEIGHT];
-	uint32_t dest[MAXWIDTH * MAXHEIGHT];
+	static uint32_t src[MAXWIDTH * MAXHEIGHT];
+	static uint32_t dest[MAXWIDTH * MAXHEIGHT];
 
 	size_t iter;
 	for (iter = min_iter; iter < max_iter; iter++) {
@@ -567,28 +570,28 @@ int main(int argc, char *argv[])
 		}
 
 		if (verbose >= 2) {
-			printf("Test #%u\n", iter);
+			printf("Test #%zu\n", iter);
 			printf("combinationRule = %u (%s), noSource = %u\n",
 					op.combinationRule,
 					combinationRuleName[op.combinationRule],
 					op.noSource);
-			printf("source      %2u bpp %cE, %4u x %u\n",
+			printf("source      %2"PRIuSQINT" bpp %cE, %4zu x %zu\n",
 					op.src.depth, op.src.msb ? 'B' : 'L', src_w, src_h);
-			printf("destination %2u bpp %cE, %4u x %u\n",
+			printf("destination %2"PRIuSQINT" bpp %cE, %4zu x %zu\n",
 					op.dest.depth, op.dest.msb ? 'B' : 'L', dest_w, dest_h);
-			printf("%u,%u -> %u,%u, size %u x %u\n",
+			printf("%"PRIuSQINT",%"PRIuSQINT" -> %"PRIuSQINT",%"PRIuSQINT", size %"PRIuSQINT" x %"PRIuSQINT"\n",
 					op.src.x, op.src.y, op.dest.x, op.dest.y, op.width, op.height);
-			printf("ColorMapFixed = %u, ColorMapIndexed = %u, cmMask = 0x%X\n",
+			printf("ColorMapFixed = %u, ColorMapIndexed = %u, cmMask = 0x%"PRIXSQINT"\n",
 					!!(op.cmFlags & ColorMapFixedPart),
 					!!(op.cmFlags & ColorMapIndexedPart),
 					op.cmMask);
-			printf("noHalftone = %u, halftoneHeight = %u\n",
+			printf("noHalftone = %u, halftoneHeight = %"PRIuSQINT"\n",
 					op.noHalftone, op.halftoneHeight);
 			if (op.combinationRule == CR_alphaBlendConst ||
 				op.combinationRule == CR_alphaPaintConst)
-				printf("sourceAlpha = 0x%02X\n", op.opt.sourceAlpha);
+				printf("sourceAlpha = 0x%02"PRIXSQINT"\n", op.opt.sourceAlpha);
 			if (op.combinationRule == CR_rgbComponentAlpha)
-				printf("fixed colour = 0x%06X, fixed alpha = 0x%02X, gamma tables = %u\n",
+				printf("fixed colour = 0x%06"PRIXSQINT", fixed alpha = 0x%02"PRIXSQINT", gamma tables = %u\n",
 						op.opt.componentAlpha.componentAlphaModeColor,
 						op.opt.componentAlpha.componentAlphaModeAlpha,
 						!!op.opt.componentAlpha.gammaLookupTable);
@@ -604,7 +607,7 @@ int main(int argc, char *argv[])
 		uint32_t crc = compute_crc32(0, dest, dest_h * op.dest.pitch);
 
 		if (verbose == 1) {
-			printf("%u:%08X\n", iter, crc);
+			printf("%zu:%08X\n", iter, crc);
 		} else if (verbose >= 2) {
 			printf("Result:\n");
 			dumpBuffer(dest, op.dest.pitch / 4, dest_h, log2destDepth, op.dest.msb);
@@ -619,7 +622,7 @@ int main(int argc, char *argv[])
 				if (cumulative_crc != check_table[check_index])
 				{
 					failed = true;
-					fprintf(stderr, "Error found before iteration %u: cumulative CRC %08X should be %08X\n", iter+1, cumulative_crc, check_table[check_index]);
+					fprintf(stderr, "Error found before iteration %zu: cumulative CRC %08X should be %08X\n", iter+1, cumulative_crc, check_table[check_index]);
 				}
 				check_index++;
 			}
