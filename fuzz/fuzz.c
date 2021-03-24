@@ -36,6 +36,8 @@
 #define MIN(a,b) ((a)<(b)?(a):(b))
 #define MAX(a,b) ((a)>(b)?(a):(b))
 
+#define sqInt intptr_t
+
 extern sqInt initialiseModule(void);
 
 #define LOG2_1 0
@@ -349,7 +351,7 @@ static void dumpBuffer(uint32_t *buf, size_t wordsPerRow, size_t rows, uint32_t 
 
 void warning(const char *message)
 {
-    fprintf(stderr, "%s\n", message);
+//    fprintf(stderr, "warning: %s\n", message);
 }
 
 int main(int argc, char *argv[])
