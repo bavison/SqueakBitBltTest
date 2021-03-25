@@ -378,13 +378,13 @@ int main(int argc, char *argv[])
             0x880DE55B, // first 1024
             0xCF157F95, // first 2048
             0x1F792E7E, // first 4096
-            0xE145711E, // first 8192
-            0x22861DD1, // first 16384
-            0x7933677D, // first 32768
-            0x97EFEC6A, // first 65536
-            0x07DE9267, // first 131072
-            0x452E2DD9, // first 262144
-            0xA7A67B6A, // first 524288
+            0xBE17C697, // first 8192
+            0xC55D2801, // first 16384
+            0x9ADEBCCD, // first 32768
+            0xDF5F3E26, // first 65536
+            0x1F632D4D, // first 131072
+            0x893224A9, // first 262144
+            0x2161204C, // first 524288
 	};
 	bool failed = false;
 
