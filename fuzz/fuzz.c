@@ -370,21 +370,21 @@ int main(int argc, char *argv[])
             0x2CA19E2E, // first 4
             0x15D7C480, // first 8
             0x211AAFF2, // first 16
-            0x2D4F20E3, // first 32
-            0x22CD8532, // first 64
-            0xFCE898DD, // first 128
-            0x76811C5B, // first 256
-            0xA7F99587, // first 512
-            0xF8B3C482, // first 1024
-            0x4EDA7B1E, // first 2048
-            0x8B90D4AA, // first 4096
-            0xF21FEB05, // first 8192
-            0x5C9CF928, // first 16384
-            0xDCEEB460, // first 32768
-            0x1D621A5B, // first 65536
-            0xBD70CD56, // first 131072
-            0x43C44479, // first 262144
-            0x508C64AB, // first 524288
+            0x4B2EDE33, // first 32
+            0x44AC7BE2, // first 64
+            0xF0E76BEB, // first 128
+            0x000CC4BA, // first 256
+            0x708CF6BF, // first 512
+            0x880DE55B, // first 1024
+            0xCF157F95, // first 2048
+            0x1F792E7E, // first 4096
+            0xE145711E, // first 8192
+            0x22861DD1, // first 16384
+            0x7933677D, // first 32768
+            0x97EFEC6A, // first 65536
+            0x07DE9267, // first 131072
+            0x452E2DD9, // first 262144
+            0xA7A67B6A, // first 524288
 	};
 	bool failed = false;
 
