@@ -379,12 +379,12 @@ int main(int argc, char *argv[])
             0xCF157F95, // first 2048
             0x1F792E7E, // first 4096
             0xBE17C697, // first 8192
-            0xC55D2801, // first 16384
-            0x9ADEBCCD, // first 32768
-            0xDF5F3E26, // first 65536
-            0x1F632D4D, // first 131072
-            0x893224A9, // first 262144
-            0x2161204C, // first 524288
+            0x34F3E623, // first 16384
+            0x4315C55A, // first 32768
+            0x069447B1, // first 65536
+            0x6B429126, // first 131072
+            0xFD1398C2, // first 262144
+            0x19A8B3E6, // first 524288
 	};
 	bool failed = false;
 
