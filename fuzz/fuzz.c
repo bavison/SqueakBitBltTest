@@ -151,7 +151,7 @@ static          int shiftTable85[4] = {       -9,       -6,       -3,        0 }
 /* For each destination depth, a table of random words */
 uint32_t lookupTable[6][32768];
 
-sqInt halftone[12] = {
+uint32_t halftone[12] = {
 		0x55555555,
 		0x33333333,
 		0x0F0F0F0F,
@@ -307,11 +307,11 @@ static void fillWithRand(uint32_t *buf, size_t nWords)
 			size_t bitsThisTime = MIN(blockRemain, wordRemain);
 			if (blockType == FILL_RAND && bitsThisTime > 16)
 				bitsThisTime = 16;
-			word <<= bitsThisTime;
+			word = bitsThisTime == 32 ? 0 : word << bitsThisTime;
 			if (blockType == FILL_ONES) {
-				word |= (1u << bitsThisTime) - 1;
+				word |= (1ul << bitsThisTime) - 1;
 			} else if (blockType == FILL_RAND) {
-				word |= rand() & ((1u << bitsThisTime) - 1);
+				word |= rand() & ((1ul << bitsThisTime) - 1);
 			}
 			totalRemain -= bitsThisTime;
 			blockRemain -= bitsThisTime;
@@ -329,7 +329,7 @@ static void dumpBuffer(uint32_t *buf, size_t wordsPerRow, size_t rows, uint32_t 
 	uint32_t pixPerWord = 32 >> log2bpp;
 	uint32_t bpp = 1u << log2bpp;
 	uint32_t pixExtractShift = bigEndian ? 32 - bpp : 0;
-	uint32_t pixExtractMask = (1u << bpp) - 1;
+	uint32_t pixExtractMask = (1ul << bpp) - 1;
 	const char *fmt[6] = { "%s%u", "%s%u", "%s%X", "%s%02X", "%s%04X", "%s%08X" };
 	while (rows-- > 0) {
 		const char *sep = "";
@@ -413,7 +413,7 @@ int main(int argc, char *argv[])
 	/* Initialise the lookup tables */
 	srand(0);
 	for (uint32_t log2bpp = 0; log2bpp < 6; log2bpp++){
-		uint32_t mask = (1u << (1u << log2bpp)) - 1;
+		uint32_t mask = (1ul << (1u << log2bpp)) - 1;
 		for (uint32_t entry = 0; entry < 32768; entry++)
 		{
 			uint32_t val = rand();
