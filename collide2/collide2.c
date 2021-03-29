@@ -146,11 +146,11 @@ static void fillWithRand(uint32_t *buf, size_t nWords)
 			size_t bitsThisTime = MIN(blockRemain, wordRemain);
 			if (blockType == FILL_RAND && bitsThisTime > 16)
 				bitsThisTime = 16;
-			word <<= bitsThisTime;
+			word = bitsThisTime == 32 ? 0 : word << bitsThisTime;
 			if (blockType == FILL_ONES) {
-				word |= (1u << bitsThisTime) - 1;
+				word |= (1ul << bitsThisTime) - 1;
 			} else if (blockType == FILL_RAND) {
-				word |= rand() & ((1u << bitsThisTime) - 1);
+				word |= rand() & ((1ul << bitsThisTime) - 1);
 			}
 			totalRemain -= bitsThisTime;
 			blockRemain -= bitsThisTime;
@@ -168,7 +168,7 @@ static void dumpBuffer(uint32_t *buf, size_t wordsPerRow, size_t rows, uint32_t 
 	uint32_t pixPerWord = 32 >> log2bpp;
 	uint32_t bpp = 1u << log2bpp;
 	uint32_t pixExtractShift = bigEndian ? 32 - bpp : 0;
-	uint32_t pixExtractMask = (1u << bpp) - 1;
+	uint32_t pixExtractMask = (1ul << bpp) - 1;
 	const char *fmt[6] = { "%s%u", "%s%u", "%s%X", "%s%02X", "%s%04X", "%s%08X" };
 	while (rows-- > 0) {
 		const char *sep = "";
@@ -186,6 +186,12 @@ static void dumpBuffer(uint32_t *buf, size_t wordsPerRow, size_t rows, uint32_t 
 		}
 		printf("\n");
 	}
+}
+
+void warning(const char *message)
+{
+    (void) message;
+//    fprintf(stderr, "warning: %s\n", message);
 }
 
 int main(int argc, char *argv[])
@@ -287,28 +293,28 @@ int main(int argc, char *argv[])
 		case 1: op.colorA = rand() ^ (rand() << 16); break;
 		case 2: op.colorA = -1u; break;
 		}
-		op.colorA &= (1u << op.srcA.depth) - 1;
+		op.colorA &= (1ul << op.srcA.depth) - 1;
         switch (rand() % 3)
         {
         case 0: op.colorB = 0; break;
         case 1: op.colorB = rand() ^ (rand() << 16); break;
         case 2: op.colorB = -1u; break;
         }
-        op.colorB &= (1u << op.srcB.depth) - 1;
+        op.colorB &= (1ul << op.srcB.depth) - 1;
 
 		if (verbose >= 2) {
-			printf("Test #%u\n", iter);
+			printf("Test #%zu\n", iter);
 			printf("matchRule = %u (%s), tally = %u\n",
 			        op.matchRule,
 			        matchRuleName[op.matchRule],
 			        op.tally);
-            printf("source A    %2u bpp %cE, %4u x %u\n",
+            printf("source A    %2"PRIuSQINT" bpp %cE, %4zu x %zu\n",
                     op.srcA.depth, op.srcA.msb ? 'B' : 'L', srcA_w, srcA_h);
-			printf("source B    %2u bpp %cE, %4u x %u\n",
+			printf("source B    %2"PRIuSQINT" bpp %cE, %4zu x %zu\n",
 					op.srcB.depth, op.srcB.msb ? 'B' : 'L', srcB_w, srcB_h);
-			printf("offsets %u,%u and %u,%u, size %u x %u\n",
+			printf("offsets %"PRIuSQINT",%"PRIuSQINT" and %"PRIuSQINT",%"PRIuSQINT", size %"PRIuSQINT" x %"PRIuSQINT"\n",
 					op.srcA.x, op.srcA.y, op.srcB.x, op.srcB.y, op.width, op.height);
-			printf("colours %08X, %08X\n", op.colorA, op.colorB);
+			printf("colours %08"PRIXSQINT", %08"PRIXSQINT"\n", op.colorA, op.colorB);
 			if (verbose >= 3) {
                 printf("Source A:\n");
                 dumpBuffer(srcA, op.srcA.pitch / 4, srcA_h, log2srcADepth, op.srcA.msb);
@@ -320,7 +326,7 @@ int main(int argc, char *argv[])
 		uint32_t result = compareColorsDispatch(&op);
 
         if (verbose == 1)
-            printf("%u:%08X\n", iter, result);
+            printf("%zu:%08X\n", iter, result);
         else if (verbose >= 2)
             printf("Result:\n0x%08X\n\n", result);
 
@@ -331,7 +337,7 @@ int main(int argc, char *argv[])
 				if (cumulative_crc != check_table[check_index])
 				{
 					failed = true;
-					fprintf(stderr, "Error found before iteration %u: cumulative CRC %08X should be %08X\n", iter+1, cumulative_crc, check_table[check_index]);
+					fprintf(stderr, "Error found before iteration %zu: cumulative CRC %08X should be %08X\n", iter+1, cumulative_crc, check_table[check_index]);
 				}
 				check_index++;
 			}

@@ -174,6 +174,12 @@ static uint32_t bench_M(void (*test)(), uint32_t log2Bpp)
 	return (width * height * times) << log2Bpp;
 }
 
+void warning(const char *message)
+{
+    (void) message;
+//    fprintf(stderr, "warning: %s\n", message);
+}
+
 int main(int argc, char *argv[])
 {
 	uint64_t t1, t2, t3;
@@ -256,7 +262,7 @@ bad_syntax:
 		op.cmLookupTable = &lookupTable;
 	}
 	if (scalarHalftone) {
-		int32_t oneWord[1] = { 0x55555555 };
+		uint32_t oneWord[1] = { 0x55555555 };
 		op.noHalftone = 0;
 		op.halftoneHeight = 1;
 		op.halftoneBase = &oneWord;

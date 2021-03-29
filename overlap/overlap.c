@@ -179,11 +179,11 @@ static void fillWithRand(uint32_t *buf, size_t nWords)
 			size_t bitsThisTime = MIN(blockRemain, wordRemain);
 			if (blockType == FILL_RAND && bitsThisTime > 16)
 				bitsThisTime = 16;
-			word <<= bitsThisTime;
+			word = bitsThisTime == 32 ? 0 : word << bitsThisTime;
 			if (blockType == FILL_ONES) {
-				word |= (1u << bitsThisTime) - 1;
+				word |= (1ul << bitsThisTime) - 1;
 			} else if (blockType == FILL_RAND) {
-				word |= rand() & ((1u << bitsThisTime) - 1);
+				word |= rand() & ((1ul << bitsThisTime) - 1);
 			}
 			totalRemain -= bitsThisTime;
 			blockRemain -= bitsThisTime;
@@ -226,6 +226,12 @@ static void copy(void *from, uint32_t from_stride, uint32_t from_x, uint32_t fro
 	copyBitsDispatch(&op);
 }
 
+
+void warning(const char *message)
+{
+    (void) message;
+//    fprintf(stderr, "warning: %s\n", message);
+}
 
 int main(int argc, char *argv[])
 {

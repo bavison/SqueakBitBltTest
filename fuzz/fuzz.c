@@ -351,6 +351,7 @@ static void dumpBuffer(uint32_t *buf, size_t wordsPerRow, size_t rows, uint32_t 
 
 void warning(const char *message)
 {
+    (void) message;
 //    fprintf(stderr, "warning: %s\n", message);
 }
 

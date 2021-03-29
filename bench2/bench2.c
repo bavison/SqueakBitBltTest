@@ -144,6 +144,12 @@ static uint32_t bench_M(void (*test)(), uint32_t log2BppA, uint32_t log2BppB)
 	return width * height * times * combinedBpp;
 }
 
+void warning(const char *message)
+{
+    (void) message;
+//    fprintf(stderr, "warning: %s\n", message);
+}
+
 int main(int argc, char *argv[])
 {
 	uint64_t t1, t2, t3;

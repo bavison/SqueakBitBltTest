@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+#include <inttypes.h>
 #include <stdbool.h>
 
 #include "BitBltDispatch.h"
@@ -46,11 +47,17 @@ static void test(compare_operation_t *op, src_or_dest_t *srcA, src_or_dest_t * s
     if (result != shouldBe)
     {
         allOK = false;
-        printf("Rule %s, width %u, height %u\n", (const char *[]) { "pixelMatch", "notAnotB", "notAmatchB" } [op->matchRule], op->width, op->height);
-        printf("A: %u bpp, %s-endian, stride %u, x %u, y %u\n", srcA->depth, srcA->msb ? "big" : "little", srcA->pitch, srcA->x, srcA->y);
-        printf("B: %u bpp, %s-endian, stride %u, x %u, y %u\n", srcB->depth, srcB->msb ? "big" : "little", srcB->pitch, srcB->x, srcB->y);
-        printf("Result = %u, should be %u\n\n", result, shouldBe);
+        printf("Rule %s, width %"PRIuSQINT", height %"PRIuSQINT"\n", (const char *[]) { "pixelMatch", "notAnotB", "notAmatchB" } [op->matchRule], op->width, op->height);
+        printf("A: %"PRIuSQINT" bpp, %s-endian, stride %"PRIuSQINT", x %"PRIuSQINT", y %"PRIuSQINT"\n", srcA->depth, srcA->msb ? "big" : "little", srcA->pitch, srcA->x, srcA->y);
+        printf("B: %"PRIuSQINT" bpp, %s-endian, stride %"PRIuSQINT", x %"PRIuSQINT", y %"PRIuSQINT"\n", srcB->depth, srcB->msb ? "big" : "little", srcB->pitch, srcB->x, srcB->y);
+        printf("Result = %"PRIu32", should be %"PRIu32"\n\n", result, shouldBe);
     }
+}
+
+void warning(const char *message)
+{
+    (void) message;
+//    fprintf(stderr, "warning: %s\n", message);
 }
 
 int main(int argc, char *argv[])
