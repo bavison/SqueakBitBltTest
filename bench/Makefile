@@ -1,7 +1,7 @@
 TARGET=bench
 ARCH:=$(shell uname -m)
 OBJS_armv7l=BitBltArm.o BitBltArmLinux.o BitBltArmSimd.o BitBltArmSimdAlphaBlend.o BitBltArmSimdBitLogical.o BitBltArmSimdCompare.o BitBltArmSimdPixPaint.o BitBltArmSimdSourceWord.o
-OBJS_aarch64=
+OBJS_aarch64=BitBltArm64.o
 BUILD_armv7l=../../../../../build.linux32ARMv6/squeak.cog.spur
 BUILD_aarch64=../../../../../build.linux64ARMv8/squeak.cog.spur
 SPUR_armv7l=spursrc
