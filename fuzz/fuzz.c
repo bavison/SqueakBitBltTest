@@ -301,7 +301,7 @@ static void fillWithRand(uint32_t *buf, size_t nWords)
 			FILL_RAND,
 			FILL_ONES
 		} blockType = rand() % 3;
-		size_t blockRemain = rand() % 64 + 1;
+		size_t blockRemain = (((1u << (rand() % 8)) - 1) & rand()) + 1;
 		blockRemain = MIN(blockRemain, totalRemain);
 		do {
 			size_t bitsThisTime = MIN(blockRemain, wordRemain);
@@ -366,26 +366,26 @@ int main(int argc, char *argv[])
 	uint32_t cumulative_crc = 0;
 	size_t check_index = 0;
 	uint32_t check_table[] = {
-            0x0BF1B397, // first 1
-            0x88327779, // first 2
-            0x2CA19E2E, // first 4
-            0x15D7C480, // first 8
-            0x211AAFF2, // first 16
-            0x4B2EDE33, // first 32
-            0x44AC7BE2, // first 64
-            0xF0E76BEB, // first 128
-            0x000CC4BA, // first 256
-            0x708CF6BF, // first 512
-            0x880DE55B, // first 1024
-            0xCF157F95, // first 2048
-            0x1F792E7E, // first 4096
-            0xBE17C697, // first 8192
-            0x34F3E623, // first 16384
-            0x4315C55A, // first 32768
-            0x069447B1, // first 65536
-            0x6B429126, // first 131072
-            0xFD1398C2, // first 262144
-            0x19A8B3E6, // first 524288
+            0x8F7E3B0B, // first 1
+            0x5824FA1D, // first 2
+            0xE8987E5B, // first 4
+            0x73BD6341, // first 8
+            0xA3284472, // first 16
+            0x668DC639, // first 32
+            0xDAACE3B6, // first 64
+            0x365B74E3, // first 128
+            0x1E0AC639, // first 256
+            0x39E858CA, // first 512
+            0x2FED171C, // first 1024
+            0x92838DDD, // first 2048
+            0x10118413, // first 4096
+            0xF618A5FB, // first 8192
+            0x6D6EA3DF, // first 16384
+            0xFDA2CFEA, // first 32768
+            0xF105428C, // first 65536
+            0xA3540C8D, // first 131072
+            0x09F4D975, // first 262144
+            0xD0839077, // first 524288
 	};
 	bool failed = false;
 
@@ -625,7 +625,7 @@ int main(int argc, char *argv[])
 				if (cumulative_crc != check_table[check_index])
 				{
 					failed = true;
-					fprintf(stderr, "Error found before iteration %zu: cumulative CRC %08X should be %08X\n", iter+1, cumulative_crc, check_table[check_index]);
+					fprintf(stderr, "Error found before iteration %6zu: cumulative CRC %08X should be %08X\n", iter+1, cumulative_crc, check_table[check_index]);
 				}
 				check_index++;
 			}
