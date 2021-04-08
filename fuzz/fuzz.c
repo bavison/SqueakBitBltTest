@@ -283,10 +283,8 @@ static uint32_t compute_crc32 (uint32_t in_crc32, const void *buf, size_t buf_le
 static uint32_t randLog2Depth(void)
 {
 	/* Emphasise 32, 16, 8 bpp over < 8bpp */
-	uint32_t result = rand() % 4 + 2;
-	if (result == 2)
-		result = rand() % 3;
-	return result;
+	const uint8_t options[] = { 0, 1, 2, 3, 3, 4, 4, 5, 5, 5 };
+	return options[rand() % sizeof options];
 }
 
 static void fillWithRand(uint32_t *buf, size_t nWords)
@@ -301,7 +299,9 @@ static void fillWithRand(uint32_t *buf, size_t nWords)
 			FILL_RAND,
 			FILL_ONES
 		} blockType = rand() % 3;
-		size_t blockRemain = (((1u << (rand() % 8)) - 1) & rand()) + 1;
+		uint8_t msbBlockRemain = rand() % 10;
+		size_t blockRemain = 1u << msbBlockRemain;
+		blockRemain |= rand() & (blockRemain - 1);
 		blockRemain = MIN(blockRemain, totalRemain);
 		do {
 			size_t bitsThisTime = MIN(blockRemain, wordRemain);
@@ -366,27 +366,27 @@ int main(int argc, char *argv[])
 	uint32_t cumulative_crc = 0;
 	size_t check_index = 0;
 	uint32_t check_table[] = {
-            0x8F7E3B0B, // first 1
-            0x5824FA1D, // first 2
-            0xE8987E5B, // first 4
-            0x73BD6341, // first 8
-            0xA3284472, // first 16
-            0x668DC639, // first 32
-            0xDAACE3B6, // first 64
-            0x365B74E3, // first 128
-            0x1E0AC639, // first 256
-            0x39E858CA, // first 512
-            0x2FED171C, // first 1024
-            0x92838DDD, // first 2048
-            0x10118413, // first 4096
-            0xF618A5FB, // first 8192
-            0x6D6EA3DF, // first 16384
-            0xFDA2CFEA, // first 32768
-            0xF105428C, // first 65536
-            0xA3540C8D, // first 131072
-            0x09F4D975, // first 262144
-            0xD0839077, // first 524288
-            0xE6258B18, // first 1048576
+            0xB6F2A71A, // first 1
+            0x40287A8B, // first 2
+            0xB8CDBBE1, // first 4
+            0xC0C5222E, // first 8
+            0xE9B01B66, // first 16
+            0x29EEFF26, // first 32
+            0xDED7EBAA, // first 64
+            0x5949914C, // first 128
+            0xA0C8CBF2, // first 256
+            0x37C5A046, // first 512
+            0xBCBF7E10, // first 1024
+            0x50479209, // first 2048
+            0x395BE40B, // first 4096
+            0x92A74044, // first 8192
+            0xE7B4A6FC, // first 16384
+            0x6771EB6C, // first 32768
+            0x4AA948EC, // first 65536
+            0x801DC787, // first 131072
+            0xB73DD14E, // first 262144
+            0x10972E60, // first 524288
+            0x54000DF8, // first 1048576
 	};
 	bool failed = false;
 
@@ -432,6 +432,9 @@ int main(int argc, char *argv[])
 
 	static uint32_t src[MAXWIDTH * MAXHEIGHT];
 	static uint32_t dest[MAXWIDTH * MAXHEIGHT];
+	static uint32_t dest_init[MAXWIDTH * MAXHEIGHT];
+	fillWithRand(src, sizeof src / sizeof *src);
+	fillWithRand(dest_init, sizeof dest_init / sizeof *dest_init);
 
 	size_t iter;
 	for (iter = min_iter; iter < max_iter; iter++) {
@@ -531,8 +534,7 @@ int main(int argc, char *argv[])
 		op.dest.y = rand() % dest_h;
 //		memset(src, 0x55, sizeof src /*src_h * op.src.pitch*/);
 //		memset(dest, 0xAA, sizeof dest /*dest_h * op.dest.pitch*/);
-		fillWithRand(src, src_h * op.src.pitch / 4);
-		fillWithRand(dest, dest_h * op.dest.pitch / 4);
+		memcpy(dest, dest_init, sizeof dest);
 		op.width = (rand() % MIN(src_w-op.src.x, dest_w-op.dest.x)) + 1;
 		op.height = (rand() % MIN(src_h-op.src.y, dest_h-op.dest.y)) + 1;
 
