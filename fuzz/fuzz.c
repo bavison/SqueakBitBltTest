@@ -358,7 +358,7 @@ void warning(const char *message)
 int main(int argc, char *argv[])
 {
 	size_t min_iter = 0;
-	size_t max_iter = 524288;
+	size_t max_iter = 1048576;
 	bool help = false;
 	uint32_t verbose = 0;
 
@@ -386,6 +386,7 @@ int main(int argc, char *argv[])
             0xA3540C8D, // first 131072
             0x09F4D975, // first 262144
             0xD0839077, // first 524288
+            0xE6258B18, // first 1048576
 	};
 	bool failed = false;
 
