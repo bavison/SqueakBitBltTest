@@ -214,7 +214,7 @@ const char *combinationRuleName[] = {
 		"rgbComponentAlpha",
 };
 
-#define MAXWIDTH (1920)
+#define MAXWIDTH (3840)
 #define MAXHEIGHT (16)
 
 /* Public domain CRC function */
@@ -366,27 +366,27 @@ int main(int argc, char *argv[])
 	uint32_t cumulative_crc = 0;
 	size_t check_index = 0;
 	uint32_t check_table[] = {
-            0xB6F2A71A, // first 1
-            0x40287A8B, // first 2
-            0xB8CDBBE1, // first 4
-            0xC0C5222E, // first 8
-            0xE9B01B66, // first 16
-            0x29EEFF26, // first 32
-            0xDED7EBAA, // first 64
-            0x5949914C, // first 128
-            0xA0C8CBF2, // first 256
-            0x37C5A046, // first 512
-            0xBCBF7E10, // first 1024
-            0x50479209, // first 2048
-            0x395BE40B, // first 4096
-            0x92A74044, // first 8192
-            0xE7B4A6FC, // first 16384
-            0x6771EB6C, // first 32768
-            0x4AA948EC, // first 65536
-            0x801DC787, // first 131072
-            0xB73DD14E, // first 262144
-            0x10972E60, // first 524288
-            0x54000DF8, // first 1048576
+            0x5F9F0D59, // first 1
+            0xBB8276CE, // first 2
+            0x44543305, // first 4
+            0x1222F3A8, // first 8
+            0xF059E545, // first 16
+            0x727FDBF4, // first 32
+            0x4339E41B, // first 64
+            0xC61F7252, // first 128
+            0x13495329, // first 256
+            0x6C01C356, // first 512
+            0x36A20696, // first 1024
+            0x62401FF8, // first 2048
+            0xADF519B9, // first 4096
+            0xB292B37E, // first 8192
+            0x71AF1FE6, // first 16384
+            0xC19C6B4F, // first 32768
+            0x4C32669A, // first 65536
+            0xEF876619, // first 131072
+            0x43FAF877, // first 262144
+            0x4760144E, // first 524288
+            0x1376FE49, // first 1048576
 	};
 	bool failed = false;
 
@@ -528,14 +528,25 @@ int main(int argc, char *argv[])
 			op.src.msb = rand() & 1;
 			op.dest.msb = rand() & 1;
 		}
-		op.src.x = rand() % src_w;
-		op.dest.x = rand() % dest_w;
+		op.width = MIN(src_w, dest_w);
+		for (uint32_t tmp = op.width, bits = 0;; tmp >>= 1, ++bits)
+		{
+		    if (tmp == 0)
+		    {
+		        op.width >>= rand() % bits;
+		        op.width &= rand();
+		        if (op.width == 0)
+		            op.width = 1;
+		        break;
+		    }
+		}
+		op.src.x = rand() % (src_w - op.width + 1);
+		op.dest.x = rand() % (dest_w - op.width + 1);
 		op.src.y = rand() % src_h;
 		op.dest.y = rand() % dest_h;
 //		memset(src, 0x55, sizeof src /*src_h * op.src.pitch*/);
 //		memset(dest, 0xAA, sizeof dest /*dest_h * op.dest.pitch*/);
 		memcpy(dest, dest_init, sizeof dest);
-		op.width = (rand() % MIN(src_w-op.src.x, dest_w-op.dest.x)) + 1;
 		op.height = (rand() % MIN(src_h-op.src.y, dest_h-op.dest.y)) + 1;
 
 		if (op.combinationRule == CR_clearWord ||
@@ -628,7 +639,7 @@ int main(int argc, char *argv[])
 				if (cumulative_crc != check_table[check_index])
 				{
 					failed = true;
-					fprintf(stderr, "Error found before iteration %6zu: cumulative CRC %08X should be %08X\n", iter+1, cumulative_crc, check_table[check_index]);
+					fprintf(stderr, "Error found before iteration %7zu: cumulative CRC %08X should be %08X\n", iter+1, cumulative_crc, check_table[check_index]);
 				}
 				check_index++;
 			}
