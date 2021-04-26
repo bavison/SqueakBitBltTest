@@ -150,6 +150,10 @@ static          int shiftTable85[4] = {       -9,       -6,       -3,        0 }
 
 /* For each destination depth, a table of random words */
 uint32_t lookupTable[6][32768];
+/* Some rules update the lookup table, but that introduces a dependency between
+ * tests, making it impossible to reproduce them individually. Back up the old
+ * values here. */
+uint32_t lookupTableBackup[32768];
 
 uint32_t halftone[12] = {
 		0x55555555,
@@ -373,20 +377,20 @@ int main(int argc, char *argv[])
             0xF059E545, // first 16
             0x727FDBF4, // first 32
             0x4339E41B, // first 64
-            0xC61F7252, // first 128
-            0x13495329, // first 256
-            0x6C01C356, // first 512
-            0x36A20696, // first 1024
-            0x62401FF8, // first 2048
-            0xADF519B9, // first 4096
-            0xB292B37E, // first 8192
-            0x71AF1FE6, // first 16384
-            0xC19C6B4F, // first 32768
-            0x4C32669A, // first 65536
-            0xEF876619, // first 131072
-            0x43FAF877, // first 262144
-            0x4760144E, // first 524288
-            0x1376FE49, // first 1048576
+            0x31764B3D, // first 128
+            0xD7383ADC, // first 256
+            0x042DC04A, // first 512
+            0xE63B7E24, // first 1024
+            0x27662683, // first 2048
+            0xC7ED6D1A, // first 4096
+            0x7624A093, // first 8192
+            0x666953EF, // first 16384
+            0x99620736, // first 32768
+            0xA904469F, // first 65536
+            0x30D09CB2, // first 131072
+            0x757879CC, // first 262144
+            0x71F97864, // first 524288
+            0x42AD160D, // first 1048576
 	};
 	bool failed = false;
 
@@ -500,6 +504,7 @@ int main(int argc, char *argv[])
 				}
 			}
 			op.cmLookupTable = &lookupTable[log2destDepth];
+			memcpy(&lookupTableBackup, op.cmLookupTable, sizeof lookupTableBackup);
 		} else {
 			if (log2destDepth == log2srcDepth) {
 				op.cmFlags = 0;
@@ -644,6 +649,9 @@ int main(int argc, char *argv[])
 				check_index++;
 			}
 		}
+
+		if (op.cmLookupTable)
+			memcpy(op.cmLookupTable, lookupTableBackup, sizeof lookupTableBackup);
 	}
 	if (check && !failed)
 		printf("Passes checks OK\n");
