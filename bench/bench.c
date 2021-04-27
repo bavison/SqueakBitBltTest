@@ -52,11 +52,19 @@ extern sqInt initialiseModule(void);
 #define TILEWIDTH (32)
 #define TINYWIDTH (8)
 
+static unsigned int  maskTable53[4] = { 0x7000, 0x0380, 0x001C, 0x0000 };
+static          int shiftTable53[4] = {     -6,     -4,     -2,      0 };
+static unsigned int  maskTable54[4] = { 0x7800, 0x03C0, 0x001E, 0x0000 };
+static          int shiftTable54[4] = {     -3,     -2,     -1,      0 };
 static unsigned int  maskTable58[4] = { 0x7C00, 0x03E0, 0x001F, 0x0000 };
 static          int shiftTable58[4] = {      9,      6,      3,      0 };
+static unsigned int  maskTable83[4] = { 0xE00000, 0x00E000, 0x0000E0, 0x000000 };
+static          int shiftTable83[4] = {      -15,      -10,       -5,        0 };
+static unsigned int  maskTable84[4] = { 0xF00000, 0x00F000, 0x0000F0, 0x000000 };
+static          int shiftTable84[4] = {      -12,       -8,       -4,        0 };
 static unsigned int  maskTable85[4] = { 0xF80000, 0x00F800, 0x0000F8, 0x000000 };
 static          int shiftTable85[4] = {       -9,       -6,       -3,        0 };
-static uint32_t      lookupTable[32768];
+static uint32_t      lookupTable[2][32768];
 
 static uint32_t src[SCREENHEIGHT][SCREENWIDTH];
 static uint32_t dest[SCREENHEIGHT][SCREENWIDTH];
@@ -186,20 +194,22 @@ int main(int argc, char *argv[])
 	uint32_t byte_cnt;
 	size_t iterations = 1;
 	bool scalarHalftone = false;
+	uint32_t map_width = 0;
 
 	bool help = false;
 	int opt;
-	while ((opt = getopt(argc, argv, "hi:ns")) != -1) {
+	while ((opt = getopt(argc, argv, "hi:nsm:")) != -1) {
 		switch (opt) {
 		case 'h': help = true; break;
 		case 'i': iterations = atoi(optarg); break;
 		case 'n': op.noSource = true; break;
 		case 's': scalarHalftone = true; break;
+		case 'm': map_width = atoi(optarg); break;
 		}
 	}
 	if (help || optind == argc) {
 bad_syntax:
-		fprintf(stderr, "Syntax: %s [-h] [-i iterations] [-n] [-s] combinationRule [srcDepth] destDepth\n", argv[0]);
+		fprintf(stderr, "Syntax: %s [-h] [-i iterations] [-n] [-s] [-m map width] combinationRule [srcDepth] destDepth\n", argv[0]);
 		exit(EXIT_FAILURE);
 	}
 	size_t i;
@@ -223,6 +233,10 @@ bad_syntax:
 		fprintf(stderr, "Bad colour depth\n");
 		exit(EXIT_FAILURE);
 	}
+
+	/* First lookup table is non-uniform, suitable for 9-bit or wider maps with 16 or 32bpp */
+	memset(lookupTable, 0xAA, sizeof lookupTable);
+	lookupTable[0][1] = 0x55555555;
 
 	op.src.bits = src;
 	op.src.pitch = (SCREENWIDTH * op.src.depth / 8 + 3) &~ 3;
@@ -253,13 +267,95 @@ bad_syntax:
 		op.cmMaskTable = &maskTable85;
 		op.cmShiftTable = &shiftTable85;
 		op.cmMask = 0x7FFF;
-		op.cmLookupTable = &lookupTable;
+		op.cmLookupTable = &lookupTable[0];
 	} else {
 		op.cmFlags = ColorMapPresent | ColorMapIndexedPart;
 		op.cmMaskTable = NULL;
 		op.cmShiftTable = NULL;
 		op.cmMask = op.src.depth == 16 ? 0x7FFF : (1u << op.src.depth) - 1;
-		op.cmLookupTable = &lookupTable;
+		op.cmLookupTable = &lookupTable[0];
+	}
+	if (op.src.depth == 32) {
+		switch (map_width) {
+		case 0:
+			break;
+		case 1:
+			op.cmFlags |= ColorMapPresent | ColorMapFixedPart | ColorMapIndexedPart;
+			op.cmMaskTable = &maskTable84;
+			op.cmShiftTable = &shiftTable84;
+			op.cmMask = 0xFFF;
+			op.cmLookupTable = &lookupTable[1];
+			break;
+		case 9:
+			op.cmFlags |= ColorMapPresent | ColorMapFixedPart | ColorMapIndexedPart;
+			op.cmMaskTable = &maskTable83;
+			op.cmShiftTable = &shiftTable83;
+			op.cmMask = 0x1FF;
+			op.cmLookupTable = &lookupTable[0];
+			break;
+		case 12:
+			op.cmFlags |= ColorMapPresent | ColorMapFixedPart | ColorMapIndexedPart;
+			op.cmMaskTable = &maskTable84;
+			op.cmShiftTable = &shiftTable84;
+			op.cmMask = 0xFFF;
+			op.cmLookupTable = &lookupTable[0];
+			break;
+		case 15:
+			op.cmFlags |= ColorMapPresent | ColorMapFixedPart | ColorMapIndexedPart;
+			op.cmMaskTable = &maskTable85;
+			op.cmShiftTable = &shiftTable85;
+			op.cmMask = 0x7FFF;
+			op.cmLookupTable = &lookupTable[0];
+			break;
+		default:
+			fprintf(stderr, "Invalid map width for 32bpp\n");
+			exit(EXIT_FAILURE);
+		}
+	} else if (op.src.depth == 16) {
+		switch (map_width) {
+		case 0:
+			break;
+		case 1:
+			op.cmFlags |= ColorMapPresent | ColorMapFixedPart | ColorMapIndexedPart;
+			op.cmMaskTable = &maskTable54;
+			op.cmShiftTable = &shiftTable54;
+			op.cmMask = 0xFFF;
+			op.cmLookupTable = &lookupTable[1];
+			break;
+		case 9:
+			op.cmFlags |= ColorMapPresent | ColorMapFixedPart | ColorMapIndexedPart;
+			op.cmMaskTable = &maskTable53;
+			op.cmShiftTable = &shiftTable53;
+			op.cmMask = 0x1FF;
+			op.cmLookupTable = &lookupTable[0];
+			break;
+		case 12:
+			op.cmFlags |= ColorMapPresent | ColorMapFixedPart | ColorMapIndexedPart;
+			op.cmMaskTable = &maskTable54;
+			op.cmShiftTable = &shiftTable54;
+			op.cmMask = 0xFFF;
+			op.cmLookupTable = &lookupTable[0];
+			break;
+		case 15:
+			op.cmFlags |= ColorMapPresent | ColorMapIndexedPart;
+			op.cmMask = 0x7FFF;
+			op.cmLookupTable = &lookupTable[0];
+			break;
+		default:
+			fprintf(stderr, "Invalid map width for 16bpp\n");
+			exit(EXIT_FAILURE);
+		}
+	} else {
+		if (map_width == 1) {
+			op.cmMask = (1u << map_width) - 1;
+			op.cmLookupTable = &lookupTable[1];
+		} else if (map_width == op.src.depth) {
+			op.cmMask = (1u << map_width) - 1;
+			op.cmLookupTable = &lookupTable[0];
+		} else if (map_width != 0) {
+			fprintf(stderr, "Invalid map width for %"PRIdSQINT"bpp\n", op.src.depth);
+			exit(EXIT_FAILURE);
+		}
 	}
 	if (scalarHalftone) {
 		uint32_t oneWord[1] = { 0x55555555 };

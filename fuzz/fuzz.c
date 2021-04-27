@@ -148,8 +148,9 @@ static          int shiftTable84[4] = {      -12,       -8,       -4,        0 }
 static unsigned int  maskTable85[4] = { 0xF80000, 0x00F800, 0x0000F8, 0x000000 };
 static          int shiftTable85[4] = {       -9,       -6,       -3,        0 };
 
-/* For each destination depth, a table of random words */
-uint32_t lookupTable[6][32768];
+/* For each destination depth, a table of random pixel values, and a table with
+ * the two random entries and the remainder of entries matching the second */
+uint32_t lookupTable[6][2][32768];
 /* Some rules update the lookup table, but that introduces a dependency between
  * tests, making it impossible to reproduce them individually. Back up the old
  * values here. */
@@ -370,27 +371,27 @@ int main(int argc, char *argv[])
 	uint32_t cumulative_crc = 0;
 	size_t check_index = 0;
 	uint32_t check_table[] = {
-            0x5F9F0D59, // first 1
-            0xBB8276CE, // first 2
-            0x44543305, // first 4
-            0x1222F3A8, // first 8
-            0xF059E545, // first 16
-            0x727FDBF4, // first 32
-            0x4339E41B, // first 64
-            0x31764B3D, // first 128
-            0xD7383ADC, // first 256
-            0x042DC04A, // first 512
-            0xE63B7E24, // first 1024
-            0x27662683, // first 2048
-            0xC7ED6D1A, // first 4096
-            0x7624A093, // first 8192
-            0x666953EF, // first 16384
-            0x99620736, // first 32768
-            0xA904469F, // first 65536
-            0x30D09CB2, // first 131072
-            0x757879CC, // first 262144
-            0x71F97864, // first 524288
-            0x42AD160D, // first 1048576
+            0xB7433DE2, // first 1
+            0xFA78A988, // first 2
+            0x15F9C12A, // first 4
+            0x4FE658E5, // first 8
+            0xB86F1BD5, // first 16
+            0x79174248, // first 32
+            0x7DF1F6FB, // first 64
+            0x930F28CC, // first 128
+            0xED8F658A, // first 256
+            0x181C4AC9, // first 512
+            0xACB15A9E, // first 1024
+            0xA67D799C, // first 2048
+            0xB29C7E17, // first 4096
+            0xA16F89C2, // first 8192
+            0xE246660E, // first 16384
+            0x8EDECC4A, // first 32768
+            0x677864CF, // first 65536
+            0x5AB0BE17, // first 131072
+            0x0B159E68, // first 262144
+            0x110988A4, // first 524288
+            0x7BB202D5, // first 1048576
 	};
 	bool failed = false;
 
@@ -426,7 +427,8 @@ int main(int argc, char *argv[])
 			if (log2bpp == 5)
 				val ^= rand() << 16;
 			val &= mask;
-			lookupTable[log2bpp][entry] = val;
+			lookupTable[log2bpp][0][entry] = val;
+			lookupTable[log2bpp][1][entry] = lookupTable[log2bpp][0][!!entry];
 		}
 	}
 	for (uint32_t i = 0; i < 256; i++) {
@@ -503,7 +505,7 @@ int main(int argc, char *argv[])
 					}
 				}
 			}
-			op.cmLookupTable = &lookupTable[log2destDepth];
+			op.cmLookupTable = &lookupTable[log2destDepth][(rand() % 4) == 0];
 			memcpy(&lookupTableBackup, op.cmLookupTable, sizeof lookupTableBackup);
 		} else {
 			if (log2destDepth == log2srcDepth) {
